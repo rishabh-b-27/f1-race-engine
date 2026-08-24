@@ -10,16 +10,24 @@ laps = prepare_laps(session)
 laps = create_race_state(laps)
 
 
-print("\n=== RACE STATE ===")
+print("\n=== RACE STATE OUTPUT ===")
 
 print(
     laps[
         [
+            "Driver",
             "LapNumber",
             "TrackStatus",
             "RaceState"
         ]
     ]
-    .drop_duplicates()
+    .head(60)
     .to_string(index=False)
+)
+
+print("\n=== RACE STATE COUNTS ===")
+
+print(
+    laps["RaceState"]
+    .value_counts()
 )
