@@ -1,3 +1,21 @@
+"""
+car_performance.py
+
+Purpose:
+    Estimate relative constructor performance during a race.
+
+Method:
+    Divide the race into 10-lap windows and compare each team's
+    mean lap time against the fastest team in that window.
+
+Output:
+    CarPerformanceDelta for each team and lap window.
+
+Important limitations:
+    Lap time is affected by tyres, traffic, fuel, weather,
+    safety cars and driver behaviour.
+"""
+
 import pandas as pd
 
 

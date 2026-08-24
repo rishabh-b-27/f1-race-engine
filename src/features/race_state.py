@@ -14,6 +14,9 @@ Examples:
     6712 -> VSC -> VSC ending -> GREEN -> YELLOW
 
 The final status is treated as the active race state for that lap.
+
+Race state is a lap-level condition that is attached to
+each driver's lap data.
 """
 
 

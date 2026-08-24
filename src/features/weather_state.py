@@ -1,6 +1,3 @@
-import pandas as pd
-
-
 def create_weather_state(weather):
 
     weather = weather.copy()

@@ -17,3 +17,5 @@ def add_driver_ratings(laps, ratings):
     )
 
     return result
+
+

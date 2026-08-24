@@ -302,51 +302,53 @@ weather observation.
 
 ===================================================================
 
-## 008 - Race State
+## 008 - Race State Feature
 
 ### File
-
-`src/features/race_state.py`
+- `src/features/race_state.py`
 
 ### Purpose
+Convert FastF1 TrackStatus values into a categorical race state.
 
-Convert FastF1 TrackStatus information into a simpler categorical
-race-state feature.
+### TrackStatus Interpretation
 
-Possible states:
+FastF1 can represent multiple chronological status changes
+within one lap as a sequence.
 
-- GREEN
-- YELLOW
-- VSC
-- SC
+Examples:
 
-### Initial Mapping
+- `12` → GREEN → YELLOW
+- `14` → GREEN → SC
+- `41` → SC → GREEN
+- `671` → VSC → VSC ending → GREEN
+- `6712` → VSC → VSC ending → GREEN → YELLOW
 
-TrackStatus flags are converted into race-state categories.
+The final status in the sequence is treated as the active
+state for the lap.
 
-### Important Discovery
+### Mapping
 
-The raw lap dataset is driver-level.
+- `1` → GREEN
+- `2` → YELLOW
+- `4` → SC
+- `5` → RED
+- `6` → VSC
+- `7` → GREEN because VSC has ended
 
-Therefore multiple drivers can have different TrackStatus values
-for the same LapNumber.
+### Validation
 
-RaceState is conceptually a race/lap-level property.
+Tested using the 2025 British Grand Prix.
 
-Therefore the final implementation must aggregate TrackStatus
-to ONE race state per lap before merging it back onto the
-driver-level lap dataset.
+Important transition cases:
 
-### Design Principle
+- `6712` → YELLOW
+- `671` → GREEN
+- `67` → GREEN
+- `41` → GREEN
+- `124` → SC
+- `126` → VSC
 
-SC > VSC > YELLOW > GREEN
-
-When multiple statuses occur during a lap, the most severe
-applicable race state should determine the lap's state.
-
-### Status
-
-Under development.
+Feature successfully integrated into driver-lap data.
 
 ===================================================================
 
