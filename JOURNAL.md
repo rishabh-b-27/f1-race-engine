@@ -352,6 +352,113 @@ Feature successfully integrated into driver-lap data.
 
 ===================================================================
 
+## 009 - Race Gaps
+
+### File
+
+`src/features/race_gaps.py`
+
+### Purpose
+
+Calculate the live race gaps between drivers based on their
+position and cumulative race time.
+
+### Features
+
+- GapToLeader
+- GapToAhead
+
+### Definitions
+
+**GapToLeader**
+
+The difference between a driver's cumulative race time and the
+leader's cumulative race time on the same lap.
+
+**GapToAhead**
+
+The difference between a driver's cumulative race time and the
+cumulative race time of the car immediately ahead of them on the
+same lap.
+
+For the race leader:
+
+- GapToLeader = 0
+- GapToAhead = 0
+
+### Calculation
+
+For each lap:
+
+1. Select drivers with valid Position and Time values.
+2. Sort drivers by race position.
+3. Identify the leader.
+4. Calculate each driver's time difference from the leader.
+5. Identify the driver one position ahead.
+6. Calculate the time difference to that driver.
+
+### Design Decision
+
+Only two gap features are retained:
+
+- GapToLeader
+- GapToAhead
+
+A separate gap-to-previous-car feature is unnecessary because
+GapToAhead already represents the gap to the car immediately
+ahead.
+
+### Important Limitation
+
+These gaps are derived from cumulative lap timestamps rather than
+official F1 timing gaps.
+
+Therefore they may differ from official timing data during:
+
+- Safety Car periods
+- Virtual Safety Car periods
+- Pit stops
+- Lapped traffic
+- Other timing irregularities
+
+### Validation
+
+Tested using the 2025 British Grand Prix.
+
+Validation included:
+
+- Full race gap output
+- Lap 1 sorted by position
+- Lap 20 sorted by position
+- Driver-specific gap progression
+
+The resulting values behaved as expected, with the leader having
+zero gap and each following driver's GapToAhead representing the
+time difference to the car immediately ahead.
+
+===================================================================
+
+
+
+===================================================================
+
+
+
+===================================================================
+
+
+
+===================================================================
+
+
+
+===================================================================
+
+
+
+===================================================================
+
+
 # Open Questions
 
 - How should traffic affect lap time?
