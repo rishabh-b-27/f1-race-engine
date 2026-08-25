@@ -14,7 +14,7 @@ def calculate_tyre_degradation(laps):
         clean_laps["LapTime"].dt.total_seconds()
     )
 
-    degradation = []
+    results = []
 
     for (driver, stint), stint_data in clean_laps.groupby(
         ["Driver", "Stint"]
@@ -22,21 +22,26 @@ def calculate_tyre_degradation(laps):
 
         stint_data = stint_data.sort_values("TyreLife")
 
-        if len(stint_data) < 2:
-            continue
+        tyre_life_values = stint_data["TyreLife"].to_numpy()
+        lap_time_values = stint_data["LapTimeSeconds"].to_numpy()
 
-        x = stint_data["TyreLife"].to_numpy()
-        y = stint_data["LapTimeSeconds"].to_numpy()
+        for i in range(len(stint_data)):
 
-        degradation_rate = np.polyfit(x, y, 1)[0]
+            if i < 2:
+                continue
 
-        degradation.append(
-            {
-                "Driver": driver,
-                "Stint": stint,
-                "Compound": stint_data["Compound"].iloc[0],
-                "DegradationRate": degradation_rate,
-            }
-        )
+            x = tyre_life_values[:i + 1]
+            y = lap_time_values[:i + 1]
 
-    return pd.DataFrame(degradation)
+            degradation_rate = np.polyfit(x, y, 1)[0]
+
+            results.append(
+                {
+                    "Driver": driver,
+                    "Stint": stint,
+                    "TyreLife": tyre_life_values[i],
+                    "DegradationRate": degradation_rate,
+                }
+            )
+
+    return pd.DataFrame(results)
