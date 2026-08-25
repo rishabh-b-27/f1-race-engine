@@ -58,3 +58,20 @@ print(
     .sort_values("Position")
     .to_string(index=False)
 )
+
+print("\n=== RAW TIMING CHECK ===")
+
+print(
+    laps[
+        [
+            "Driver",
+            "LapNumber",
+            "LapStartTime",
+            "Time",
+            "LapTime",
+            "Position"
+        ]
+    ]
+    .head(30)
+    .to_string(index=False)
+)

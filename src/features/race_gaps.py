@@ -22,15 +22,17 @@ import numpy as np
 def add_race_gaps(laps):
 
     laps = laps.copy()
-    
-    laps["GapToLeader"] = np.nan
-    laps["GapToAhead"] = np.nan
 
-    for lap_number, lap_data in laps.groupby("LapNumber"):
+    laps["TimestampGapToLeader"] = np.nan
+    laps["TimestampGapToAhead"] = np.nan
 
-        valid = lap_data.dropna(subset=["Position", "Time"]).copy()
+    for _, lap_data in laps.groupby("LapNumber"):
 
-        valid = valid.sort_values("Position")
+        valid = (
+            lap_data
+            .dropna(subset=["Position", "Time"])
+            .sort_values("Position")
+        )
 
         if valid.empty:
             continue
@@ -41,26 +43,24 @@ def add_race_gaps(laps):
 
             current_time = row["Time"]
 
-            laps.loc[index, "GapToLeader"] = (
+            laps.loc[index, "TimestampGapToLeader"] = (
                 current_time - leader_time
             ).total_seconds()
 
             if row["Position"] == 1:
-                laps.loc[index, "GapToAhead"] = 0.0
+                laps.loc[index, "TimestampGapToAhead"] = 0.0
+                continue
 
-            else:
-                position_ahead = row["Position"] - 1
+            ahead = valid[
+                valid["Position"] == row["Position"] - 1
+            ]
 
-                car_ahead = valid[
-                    valid["Position"] == position_ahead
-                ]
+            if not ahead.empty:
 
-                if not car_ahead.empty:
+                ahead_time = ahead.iloc[0]["Time"]
 
-                    ahead_time = car_ahead.iloc[0]["Time"]
-
-                    laps.loc[index, "GapToAhead"] = (
-                        current_time - ahead_time
-                    ).total_seconds()
+                laps.loc[index, "TimestampGapToAhead"] = (
+                    current_time - ahead_time
+                ).total_seconds()
 
     return laps
