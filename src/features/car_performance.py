@@ -20,65 +20,119 @@ Note:
 import pandas as pd
 
 
-def calculate_car_performance(laps, window_size=10):
+def calculate_car_performance(laps, min_history=10):
 
-    clean_laps = laps[
-        laps["LapTime"].notna()
-    ].copy()
+    laps = laps.copy()
 
-    clean_laps["LapTimeSeconds"] = (
-        clean_laps["LapTime"].dt.total_seconds()
+    # Convert lap time to seconds
+    laps["LapTimeSeconds"] = (
+        laps["LapTime"].dt.total_seconds()
     )
+
+    # Work in chronological order
+    laps = laps.sort_values(
+        ["LapNumber", "Driver"]
+    ).copy()
+
+    # Cumulative state for each driver
+    driver_sum = {}
+    driver_count = {}
 
     results = []
 
-    max_lap = int(clean_laps["LapNumber"].max())
+    for lap_number in sorted(laps["LapNumber"].dropna().unique()):
 
-    for start_lap in range(1, max_lap + 1, window_size):
+        current_lap = laps[
+            laps["LapNumber"] == lap_number
+        ]
 
-        end_lap = start_lap + window_size - 1
+        # ---------------------------------------------------------
+        # 1. Calculate team pace using ONLY previous laps
+        # ---------------------------------------------------------
 
-        window = clean_laps[
-            (clean_laps["LapNumber"] >= start_lap)
-            & (clean_laps["LapNumber"] <= end_lap)
-        ].copy()
+        team_paces = {}
 
-        team_pace = (
-            window
-            .groupby("Team")["LapTimeSeconds"]
-            .mean()
-            .sort_values()
-        )
+        for team in current_lap["Team"].dropna().unique():
 
-        if team_pace.empty:
-            continue
+            team_drivers = current_lap[
+                current_lap["Team"] == team
+            ]["Driver"].dropna().unique()
 
-        fastest_team_time = team_pace.iloc[0]
+            active_driver_paces = []
 
-        car_delta = (
-            (team_pace - fastest_team_time)
-            / fastest_team_time
-        )
+            for driver in team_drivers:
 
-        window_result = pd.DataFrame({
-            "WindowStart": start_lap,
-            "WindowEnd": end_lap,
-            "Team": team_pace.index,
-            "MeanLapTime": team_pace.values,
-            "CarPerformanceDelta": car_delta.values
-        })
+                if (
+                    driver in driver_sum
+                    and driver in driver_count
+                    and driver_count[driver] > 0
+                ):
+                    active_driver_paces.append(
+                        driver_sum[driver]
+                        / driver_count[driver]
+                    )
 
-        results.append(window_result)
+            if not active_driver_paces:
+                continue
 
-    if not results:
-        return pd.DataFrame(
-            columns=[
-                "WindowStart",
-                "WindowEnd",
-                "Team",
-                "MeanLapTime",
-                "CarPerformanceDelta"
-            ]
-        )
+            # Normal case:
+            # both drivers have accumulated data.
+            #
+            # DNF case:
+            # only one driver remains -> use that driver's pace.
+            #
+            # If both remain, average their cumulative means.
+            team_paces[team] = (
+                sum(active_driver_paces)
+                / len(active_driver_paces)
+            )
 
-    return pd.concat(results, ignore_index=True)
+        # ---------------------------------------------------------
+        # 2. Require at least min_history laps of history
+        # ---------------------------------------------------------
+
+        if lap_number > min_history and team_paces:
+
+            fastest_team_time = min(
+                team_paces.values()
+            )
+
+            for team, mean_lap_time in team_paces.items():
+
+                performance_delta = (
+                    (mean_lap_time - fastest_team_time)
+                    / fastest_team_time
+                )
+
+                results.append(
+                    {
+                        "LapNumber": lap_number,
+                        "Team": team,
+                        "MeanLapTime": mean_lap_time,
+                        "CarPerformanceDelta": performance_delta,
+                    }
+                )
+
+        # ---------------------------------------------------------
+        # 3. AFTER calculating the feature,
+        #    add the CURRENT lap to history.
+        #
+        #    This prevents future leakage.
+        # ---------------------------------------------------------
+
+        for _, row in current_lap.iterrows():
+
+            driver = row["Driver"]
+            lap_time = row["LapTimeSeconds"]
+
+            if pd.isna(lap_time):
+                continue
+
+            if driver not in driver_sum:
+                driver_sum[driver] = 0.0
+                driver_count[driver] = 0
+
+            driver_sum[driver] += lap_time
+            driver_count[driver] += 1
+
+    return pd.DataFrame(results)
