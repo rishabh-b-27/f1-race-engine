@@ -438,19 +438,263 @@ time difference to the car immediately ahead.
 
 ===================================================================
 
+## 010 - Ten-Lap Position Prediction Target
 
+### File
+
+`src/features/target.py`
+
+### Purpose
+
+Define the machine-learning target as the driver's race position
+10 laps after the current lap.
+
+For a driver at lap `t`:
+
+`Target = position at lap t+10`
+
+This turns the problem into a rolling short-horizon prediction task
+rather than directly predicting the final race result.
+
+### Target Classes
+
+- `1` → P1 after 10 laps
+- `2` → P2 after 10 laps
+- `3` → P3 after 10 laps
+- `4` → P4 after 10 laps
+- `5` → P5 after 10 laps
+- `6` → P6 after 10 laps
+- `7` → P7 after 10 laps
+- `8` → P8 after 10 laps
+- `9` → P9 or worse after 10 laps
+- `10` → DNF before the target horizon
+
+DNS rows are excluded from training.
+
+Rows without a valid future target are excluded.
+
+### Design Decision
+
+The model predicts one mutually exclusive probability distribution.
+
+Therefore:
+
+`P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9+ + P(DNF) = 1`
+
+This gives the model a probability distribution over the driver's
+possible outcome after the next 10 laps.
+
+### Validation
+
+Tested using the 2025 British Grand Prix.
+
+Special cases checked:
+
+- Normal finishing positions
+- P9+ grouping
+- Retired drivers
+- Drivers who did not start
+- Drivers still classified as racing/lapped
 
 ===================================================================
 
+## 011 - Multi-Race Training Dataset
 
+### Files
+
+- `src/data/build_training_data.py`
+- `src/data/model_dataset.py`
+- `src/data/multi_race_dataset.py`
+
+### Purpose
+
+Create a reusable pipeline for converting individual race sessions
+into machine-learning datasets and combining multiple races for
+training.
+
+### Pipeline
+
+`Race Session`
+↓
+`build_training_data()`
+↓
+`build_model_dataset()`
+↓
+`X, y`
+↓
+`multi_race_dataset`
+↓
+`Model Training`
+
+### Important Design Decisions
+
+Future target columns are excluded from the feature matrix.
+
+Categorical variables are converted into numerical representations.
+
+Timedeltas such as lap and sector times are converted into numerical
+seconds before model training.
+
+Only rows with valid training targets are included.
+
+### Validation
+
+The British Grand Prix produced:
+
+- 825 total driver-lap rows
+- 675 usable training rows
+
+The resulting dataset contained the ten target classes.
 
 ===================================================================
 
+## 012 - V1 Baseline Model
 
+### Files
+
+- `src/models/baseline.py`
+- `src/models/calibrated.py`
+- `src/models/validation.py`
+
+### Model
+
+Random Forest multiclass classifier.
+
+Configuration:
+
+- 300 trees
+- `min_samples_leaf = 2`
+- `random_state = 42`
+- `n_jobs = -1`
+
+### Probability Output
+
+The model uses `predict_proba()` to produce a complete probability
+distribution over the ten possible target classes.
+
+Example:
+
+`P(P1), P(P2), ..., P(P8), P(P9+), P(DNF)`
+
+The probabilities sum to 1.
+
+### Calibration
+
+A calibrated Random Forest was tested because probability quality is
+more important than raw classification accuracy for the intended
+prediction engine.
+
+Initial British Grand Prix comparison:
+
+| Model | Accuracy | Log Loss |
+|---|---:|---:|
+| Random Forest | 49.19% | 2.012 |
+| Calibrated Random Forest | 50.22% | 1.788 |
+
+Calibration therefore improved both accuracy and log loss in this
+experiment.
+
+### Baselines
+
+Current-position baseline:
+
+- Accuracy = 51.41%
+- Log Loss = 17.515
+
+Class-frequency baseline:
+
+- Accuracy = 46.37%
+- Log Loss = 1.915
+
+The calibrated Random Forest produced substantially better log loss
+than the current-position baseline and improved on the class-frequency
+baseline in the initial experiment.
 
 ===================================================================
 
+## 013 - Rolling Race Validation
 
+### Purpose
+
+Evaluate the model on races that were not used for training.
+
+The validation strategy is chronological rather than random.
+
+Earlier races are used for training and a later race is held out for
+testing.
+
+This reduces leakage caused by mixing laps from the same race between
+training and testing.
+
+### Validation
+
+The model was evaluated across multiple 2025 races, including:
+
+- Bahrain Grand Prix
+- Saudi Arabian Grand Prix
+- British Grand Prix
+
+The final rolling validation benchmark was:
+
+**Average Accuracy: 59.80%**
+
+**Average Log Loss: 1.364**
+
+### Interpretation
+
+The model demonstrates meaningful predictive signal on unseen races.
+
+However, the benchmark is treated as a V1 baseline rather than a
+finished model.
+
+The goal of future development is to improve the model's understanding
+of race dynamics while preserving the same validation protocol.
+
+### V1 Checkpoint
+
+**59.80% Average Accuracy**
+
+**1.364 Average Log Loss**
+
+This checkpoint should remain unchanged and be used as the benchmark
+for all future feature and model experiments.
+
+===================================================================
+
+## 014 - Next Development Phase: Temporal Features
+
+### Objective
+
+The next phase is to add information about how a driver's race
+position has been changing over time.
+
+### First Feature Group
+
+Planned features:
+
+- `PositionChange3`
+- `PositionChange5`
+- `AveragePosition3`
+- `AveragePosition5`
+- `AveragePosition10`
+
+These features should capture short-term position momentum and recent
+race trajectory.
+
+### Development Rule
+
+Features will be introduced in small groups.
+
+Each experiment will use the same rolling race validation procedure.
+
+A feature group should only be retained if it provides measurable
+improvement over the V1 benchmark.
+
+### Current Benchmark
+
+Accuracy: **59.80%**
+
+Log Loss: **1.364**
 
 ===================================================================
 
