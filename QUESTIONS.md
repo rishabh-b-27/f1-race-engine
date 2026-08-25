@@ -557,6 +557,180 @@
 
 218. How would you extend the model to all 20 positions?
 
+## Advanced ML / Statistical Defense
+
+219. What is the difference between aleatoric and epistemic uncertainty?
+
+220. Which type of uncertainty is more relevant to this prediction problem?
+
+221. How would you estimate uncertainty in a Random Forest?
+
+222. Why is a Random Forest's class probability not automatically a statistically valid probability?
+
+223. What is a proper scoring rule?
+
+224. Why is log loss a proper scoring rule?
+
+225. What is the Brier score?
+
+226. How would Brier score complement log loss?
+
+227. What is calibration error?
+
+228. What is a reliability diagram?
+
+229. How would you determine whether the calibrated model is actually better calibrated?
+
+230. What is cross-validation?
+
+231. Why can ordinary k-fold cross-validation be inappropriate for race data?
+
+232. What is nested cross-validation?
+
+233. When would nested cross-validation be useful here?
+
+234. What is hyperparameter overfitting?
+
+235. Can you overfit your validation set without overfitting your training data?
+
+236. How would you tune hyperparameters without contaminating the test race?
+
+237. Why should the final test race be touched only once?
+
+238. What is a confidence interval?
+
+239. How would you calculate a confidence interval for race-level accuracy?
+
+240. Why are individual driver-lap samples not necessarily independent?
+
+241. Why does temporal and driver-level correlation matter statistically?
+
+242. What is bootstrap resampling?
+
+243. How could bootstrap be used to estimate uncertainty in model performance?
+
+244. Why might ordinary bootstrap still be problematic for time-series data?
+
+245. What is block bootstrap?
+
+246. How could you compare two models statistically across multiple races?
+
+247. What is a paired comparison?
+
+248. Why is comparing models on exactly the same samples important?
+
+249. What is statistical significance?
+
+250. Why is statistical significance not the same as practical significance?
+
+
+## Advanced Target / Probability Design
+
+251. Why is P9+ an information-loss tradeoff?
+
+252. What alternative target representations could preserve more information?
+
+253. What would happen if you created 20 classes instead of 10?
+
+254. What would happen to class imbalance with 20 classes?
+
+255. Why might ordinal classification be better than ordinary multiclass classification?
+
+256. What makes finishing position an ordinal variable?
+
+257. Why does predicting P3 versus P4 have a different relationship than predicting P3 versus P20?
+
+258. How could you exploit the ordinal structure mathematically?
+
+259. What is a cumulative-link model?
+
+260. Could you model P(position <= k) instead of exact position?
+
+261. How would you recover exact-position probabilities from cumulative probabilities?
+
+262. How would you represent DNF without destroying the ordinal structure?
+
+263. Should DNF be modeled jointly with finishing position or separately?
+
+264. What are the advantages of a two-stage model: DNF first, finishing position second?
+
+265. What are the disadvantages of a two-stage model?
+
+266. How would you combine DNF probability with conditional finishing-position probabilities?
+
+267. What does a complete probability distribution over finishing positions actually represent?
+
+268. Why is predicting the most likely position not enough?
+
+269. Why can expected finishing position be misleading?
+
+270. How would you calculate expected finishing position from the probability distribution?
+
+
+## Race-Level Modeling
+
+271. Why are driver outcomes not independent?
+
+272. If one driver gains a position, what must happen to another driver?
+
+273. Why does an independent driver model violate race mechanics?
+
+274. How could you enforce the one-driver-per-position constraint?
+
+275. What is a permutation distribution?
+
+276. How could you model the final race order as a probability distribution over permutations?
+
+277. Why is the space of possible race orders enormous?
+
+278. How could Monte Carlo simulation approximate the race-order distribution?
+
+279. What would one Monte Carlo race simulation contain?
+
+280. How would you model lap-by-lap transitions in a simulation?
+
+281. What is a state-transition model?
+
+282. Could the race be represented as a Markov process?
+
+283. What assumptions would a Markov model make?
+
+284. Why might the Markov assumption be unrealistic for F1?
+
+285. What information would need to be included in the state?
+
+286. How would you model an overtake as a probabilistic event?
+
+287. What factors influence overtaking probability?
+
+288. How would DRS affect an overtaking model?
+
+289. How would track characteristics affect overtaking probability?
+
+290. How would you distinguish a genuine overtake from a position change caused by a pit stop?
+
+
+## Advanced F1 Modeling
+
+291. How would you estimate fuel load from observed lap times?
+
+292. How would fuel burn affect lap-time trends?
+
+293. Why can using raw lap times confuse fuel effects with car performance?
+
+294. How would you separate tyre degradation from fuel burn?
+
+295. How would you identify pit-stop strategy from lap data?
+
+296. How could pit strategy be incorporated into future-position prediction?
+
+297. How would you model Safety Car probability?
+
+298. How would you incorporate an uncertain future Safety Car into predictions?
+
+299. How would you incorporate weather forecasts while avoiding future leakage?
+
+300. If you rebuilt V1 from scratch, what would you change first and why?
 
 
 ## Defense Rule
