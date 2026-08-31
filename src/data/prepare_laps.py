@@ -2,7 +2,7 @@ def prepare_laps(session):
 
     laps = session.laps.copy()
 
-    columns = [
+    columns = [      #This is simply a Python list containing the names of the columns that are relevant to the project.
 
         # Driver / team
         "Driver",
