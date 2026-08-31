@@ -33,7 +33,7 @@ def prepare_laps(session):
         "PitInTime",
         "PitOutTime",
 
-        # Speed
+        # Speed      #These are speed measurements at different points on the circuit.
         "SpeedI1",
         "SpeedI2",
         "SpeedFL",
